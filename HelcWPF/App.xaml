@@ -1,0 +1,11 @@
+<Application x:Class="HelcWPF.App"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:local="clr-namespace:HelcWPF">
+    <!-- 注意：这里故意不写 StartupUri。
+         HALCON 环境必须在任何窗口/算子之前初始化，所以窗口由 App.xaml.cs 的
+         OnStartup 里手动创建，见 App.xaml.cs 的注释。 -->
+    <Application.Resources>
+
+    </Application.Resources>
+</Application>

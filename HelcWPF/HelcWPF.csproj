@@ -1,0 +1,66 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net8.0-windows</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <UseWPF>true</UseWPF>
+
+    <!-- ★ 必须同时开 WinForms。原因：HALCON 的 halcondotnet.dll 里有些类型
+         （含 HSmartWindowControlWPF 相关的元数据）引用了 System.Drawing.Common，
+         而它属于 Windows Desktop 框架、只有开了 WinForms 才会被引用进来。
+         不开的报错是：MC1000 Could not find assembly 'System.Drawing.Common'。 -->
+    <UseWindowsForms>true</UseWindowsForms>
+
+    <!-- 本机离线，关掉 NuGet 漏洞审计，免得每次生成都刷 NU1900 警告 -->
+    <NuGetAudit>false</NuGetAudit>
+
+    <!-- ★ 必须 64 位：HALCON 只装了 x64-win64 的 native dll，32 位会报 BadImageFormatException -->
+    <PlatformTarget>x64</PlatformTarget>
+
+    <!-- ★ HALCON 安装根目录（= 含 bin、license 的那一层）。换电脑/换 HALCON 版本只改这一行 -->
+    <HalconRoot Condition="'$(HalconRoot)' == ''">D:\halcon23a\HALCONprogram\HALCON-24.11-Progress-Steady</HalconRoot>
+  </PropertyGroup>
+
+  <!-- 把 HALCON 根目录编进程序集元数据，运行时读出来用，避免在 C# 里硬编码路径 -->
+  <ItemGroup>
+    <AssemblyMetadata Include="HalconRoot" Value="$(HalconRoot)" />
+  </ItemGroup>
+
+  <!-- 开了 WinForms 只是为了拿到 System.Drawing.Common 的引用。
+       但它的"隐式 using"会和 WPF 重名打架（Application / Size / Point…），
+       所以把 WinForms 的两个隐式 using 去掉，本项目只写 WPF 代码。 -->
+  <ItemGroup>
+    <Using Remove="System.Windows.Forms" />
+    <Using Remove="System.Drawing" />
+  </ItemGroup>
+
+  <!-- HALCON 的 .NET 接口程序集：用安装目录自带的那份。
+       版本必须和 native halcon.dll 完全一致（这里都是 24.11.1.1），
+       从 NuGet 装对不上号的版本是各种诡异报错的根源。 -->
+  <ItemGroup>
+    <Reference Include="halcondotnet">
+      <HintPath>$(HalconRoot)\bin\dotnet35\halcondotnet.dll</HintPath>
+      <Private>true</Private>
+      <SpecificVersion>false</SpecificVersion>
+    </Reference>
+  </ItemGroup>
+
+  <!-- NuGet 依赖（版本都是本机缓存里有的，离线可还原） -->
+  <ItemGroup>
+    <!-- 数据库：每张图的结果 + 每个零件的明细 -->
+    <PackageReference Include="Microsoft.Data.Sqlite" Version="10.0.12" />
+    <!-- 日志：文件 + 界面双通道 -->
+    <PackageReference Include="Serilog" Version="4.4.0" />
+    <PackageReference Include="Serilog.Sinks.File" Version="7.0.0" />
+    <!-- MVVM：属性通知/命令的样板代码生成器（M2 开始用） -->
+    <PackageReference Include="CommunityToolkit.Mvvm" Version="8.4.2" />
+  </ItemGroup>
+
+  <!-- 编译时就检查 HALCON 路径，别拖到运行期才炸 -->
+  <Target Name="CheckHalconInstall" BeforeTargets="BeforeBuild">
+    <Error Condition="!Exists('$(HalconRoot)\bin\dotnet35\halcondotnet.dll')" Text="找不到 $(HalconRoot)\bin\dotnet35\halcondotnet.dll，请修改 HelcWPF.csproj 里的 HalconRoot。" />
+  </Target>
+
+</Project>
