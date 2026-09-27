@@ -13,6 +13,16 @@
 # User-specific files (MonoDevelop/Xamarin Studio)
 *.userprefs
 
+# ── 文档不纳入版本管理 ──
+# 说明：.gitignore 只对"还没被跟踪"的文件生效；已经被提交过的文件必须用 git rm 才会消失。
+# 本项目的文档统一放在【仓库外】的上层目录 halc\ 下（halc\开发文档\、halc\技术文档.md、halc\架构规划.md），
+# 下面这几条是"保险丝"：万一以后又拷回仓库里，也不会再被误提交。
+开发文档/
+技术文档.md
+架构规划.md
+技术文档/
+架构规划/
+
 # Mono auto generated files
 mono_crash.*
 
